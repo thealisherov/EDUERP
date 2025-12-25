@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { FiEye, FiEyeOff, FiUser, FiLock } from 'react-icons/fi';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const Login = () => {
     login: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const { login, loading, error } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -19,53 +21,115 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-center">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="login" className="block text-sm font-medium">
-              Login
-            </label>
-            <input
-              id="login"
-              type="text"
-              value={credentials.login}
-              onChange={(e) =>
-                setCredentials({ ...credentials, login: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="w-full max-w-md mx-4">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
+            <span className="text-3xl text-white font-bold">B</span>
           </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={credentials.password}
-              onChange={(e) =>
-                setCredentials({ ...credentials, password: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-              required
-            />
+          <h1 className="text-3xl font-bold text-gray-900">Big Ideas LC</h1>
+          <p className="text-gray-600 mt-2">ERP-CRM System</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            Tizimga kirish
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-2">
+                Login
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="login"
+                  type="text"
+                  value={credentials.login}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, login: e.target.value })
+                  }
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Loginni kiriting"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Parol
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={credentials.password}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, password: e.target.value })
+                  }
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Parolni kiriting"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" />
+                  ) : (
+                    <FiEye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Yuklanmoqda...
+                </div>
+              ) : (
+                'Kirish'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Muammo bormi?{' '}
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+                Yordam olish
+              </a>
+            </p>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Login'}
-          </button>
-        </form>
+        </div>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          © 2024 Big Ideas LC. Barcha huquqlar himoyalangan.
+        </p>
       </div>
     </div>
   );
 };
 
 export default Login;
-
