@@ -6,6 +6,13 @@ export const studentsApi = {
   create: (studentData) => api.post('/students', studentData),
   update: (id, studentData) => api.put(`/students/${id}`, studentData),
   delete: (id) => api.delete(`/students/${id}`),
-  getByGroup: (groupId) => api.get(`/students/group/${groupId}`),
+  getPaymentHistory: (id) => api.get(`/students/${id}/payment-history`),
+  getGroups: (id) => api.get(`/students/${id}/groups`),
+  getUnpaid: (params) => api.get('/students/unpaid', { params }),
+  getStatistics: (params) => api.get('/students/statistics', { params }),
+  search: (params) => api.get('/students/search', { params }),
+  getRecent: (params) => api.get('/students/recent', { params }),
+  getByPaymentStatus: (params) => api.get('/students/by-payment-status', { params }),
+  getByGroup: (groupId, params) => api.get(`/students/by-group`, { params: { groupId, ...params } }),
 };
 

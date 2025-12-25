@@ -17,17 +17,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      authApi
-        .getCurrentUser()
-        .then((response) => {
-          dispatch({
-            type: 'SET_USER',
-            payload: response.data,
-          });
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-        });
+      // Token bor bo'lsa, authenticated deb belgilash
+      // Agar backend'dan user ma'lumotlari kerak bo'lsa, boshqa endpoint ishlatilishi mumkin
+      dispatch({
+        type: 'SET_USER',
+        payload: { token },
+      });
     }
   }, []);
 
