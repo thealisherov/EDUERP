@@ -7,11 +7,14 @@ import {
   FiCreditCard, 
   FiDollarSign, 
   FiBarChart2,
-  FiLogOut
+  FiLogOut,
+  FiX,
+  FiMapPin,
+  FiShield
 } from 'react-icons/fi';
 import { useAuth } from '../../hooks/useAuth';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { logout } = useAuth();
 
@@ -22,55 +25,69 @@ const Sidebar = () => {
     { path: '/groups', label: 'Guruhlar', icon: FiGrid },
     { path: '/payments', label: 'To\'lovlar', icon: FiCreditCard },
     { path: '/expenses', label: 'Xarajatlar', icon: FiDollarSign },
+    { path: '/branches', label: 'Filiallar', icon: FiMapPin },
+    { path: '/users', label: 'Foydalanuvchilar', icon: FiShield },
     { path: '/reports', label: 'Hisobotlar', icon: FiBarChart2 },
   ];
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-screen flex flex-col">
-      <div className="p-6 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-xl font-bold">B</span>
+    <>
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-xl font-bold">B</span>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Big Ideas LC</h2>
+              <p className="text-xs text-gray-400">ERP System</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-bold">Big Ideas LC</h2>
-            <p className="text-xs text-gray-400">ERP System</p>
-          </div>
+          <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-white">
+            <FiX className="h-6 w-6" />
+          </button>
         </div>
-      </div>
-      
-      <nav className="flex-1 py-4">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-6 py-3 transition-all ${
-                isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 border-r-4 border-white'
-                  : 'hover:bg-gray-700'
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
 
-      <div className="p-4 border-t border-gray-700">
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-all"
-        >
-          <FiLogOut className="h-5 w-5" />
-          <span className="font-medium">Chiqish</span>
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 py-4 overflow-y-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname.startsWith(item.path);
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => {
+                  if (window.innerWidth < 1024) onClose();
+                }}
+                className={`flex items-center gap-3 px-6 py-3 transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 border-r-4 border-white'
+                    : 'hover:bg-gray-700'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-all"
+          >
+            <FiLogOut className="h-5 w-5" />
+            <span className="font-medium">Chiqish</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

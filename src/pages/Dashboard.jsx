@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { dashboardApi } from '../api/dashboard.api';
-import { FiUsers, FiUserCheck, FiCreditCard, FiTrendingUp } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiCreditCard, FiTrendingUp, FiPlus } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -46,18 +48,25 @@ const Dashboard = () => {
     },
     {
       title: 'Oylik To\'lovlar',
-      value: stats?.monthlyRevenue || '0 UZS',
+      value: `${stats?.monthlyRevenue?.toLocaleString() || '0'} UZS`,
       icon: FiCreditCard,
       bgColor: 'from-green-500 to-green-600',
       change: '+18%',
     },
     {
       title: 'Umumiy Daromad',
-      value: stats?.totalRevenue || '0 UZS',
+      value: `${stats?.totalRevenue?.toLocaleString() || '0'} UZS`,
       icon: FiTrendingUp,
       bgColor: 'from-orange-500 to-orange-600',
       change: '+24%',
     },
+  ];
+
+  const quickActions = [
+    { label: 'Yangi O\'quvchi', path: '/students', icon: FiPlus },
+    { label: 'Yangi Guruh', path: '/groups', icon: FiPlus },
+    { label: 'To\'lov Qabul Qilish', path: '/payments', icon: FiCreditCard },
+    { label: 'Hisobot Ko\'rish', path: '/reports', icon: FiTrendingUp },
   ];
 
   return (
@@ -100,7 +109,7 @@ const Dashboard = () => {
             So'nggi Faoliyat
           </h2>
           <div className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                   <FiUsers className="h-5 w-5 text-blue-600" />
@@ -113,6 +122,7 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+             <p className="text-center text-gray-400 text-sm mt-4">Ko'proq ma'lumotlar yaqinda...</p>
           </div>
         </div>
 
@@ -121,12 +131,14 @@ const Dashboard = () => {
             Tez Harakatlar
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            {['Yangi O\'quvchi', 'Yangi Guruh', 'To\'lov Qabul Qilish', 'Hisobot'].map((action, i) => (
+            {quickActions.map((action, i) => (
               <button
                 key={i}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                onClick={() => navigate(action.path)}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 text-center"
               >
-                <p className="text-sm font-medium text-gray-700">{action}</p>
+                <action.icon className="h-6 w-6 text-blue-600" />
+                <p className="text-sm font-medium text-gray-700">{action.label}</p>
               </button>
             ))}
           </div>
