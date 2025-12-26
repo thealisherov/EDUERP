@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { branchesApi } from '../api/branches.api';
 import { FiPlus, FiEdit2, FiTrash2, FiMapPin } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
 
 const Branches = () => {
-  const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [formData, setFormData] = useState({
@@ -13,21 +13,28 @@ const Branches = () => {
     address: ''
   });
 
-  useEffect(() => {
-    fetchBranches();
-  }, []);
-
-  const fetchBranches = async () => {
-    try {
-      setLoading(true);
+  const { data: branches = [], isLoading: loading } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
       const response = await branchesApi.getAll();
-      setBranches(response.data);
-    } catch (error) {
-      console.error('Error fetching branches:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => branchesApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['branches']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => branchesApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['branches']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => branchesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['branches']),
+  });
 
   const handleOpenModal = (branch = null) => {
     if (branch) {
@@ -50,12 +57,11 @@ const Branches = () => {
     e.preventDefault();
     try {
       if (editingBranch) {
-        await branchesApi.update(editingBranch.id, formData);
+        await updateMutation.mutateAsync({ id: editingBranch.id, data: formData });
       } else {
-        await branchesApi.create(formData);
+        await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-      fetchBranches();
     } catch (error) {
       console.error('Error saving branch:', error);
       alert('Xatolik yuz berdi');
@@ -65,8 +71,7 @@ const Branches = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu filialni o\'chirmoqchimisiz?')) {
       try {
-        await branchesApi.delete(id);
-        fetchBranches();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting branch:', error);
       }
@@ -79,7 +84,7 @@ const Branches = () => {
         <h1 className="text-2xl font-bold text-gray-800">Filiallar</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+          className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
         >
           <FiPlus /> Yangi Filial
         </button>
@@ -100,13 +105,13 @@ const Branches = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleOpenModal(branch)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   >
                     <FiEdit2 />
                   </button>
                   <button
                     onClick={() => handleDelete(branch.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <FiTrash2 />
                   </button>
@@ -155,13 +160,13 @@ const Branches = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className=" cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

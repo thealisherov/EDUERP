@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { groupsApi } from '../api/groups.api';
 import { teachersApi } from '../api/teachers.api';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiUsers, FiClock } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
 
 const Groups = () => {
-  const [groups, setGroups] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const [formData, setFormData] = useState({
@@ -17,31 +16,36 @@ const Groups = () => {
     subject: ''
   });
 
-  useEffect(() => {
-    fetchGroups();
-    fetchTeachers();
-  }, []);
-
-  const fetchGroups = async () => {
-    try {
-      setLoading(true);
+  const { data: groups = [], isLoading: loading } = useQuery({
+    queryKey: ['groups'],
+    queryFn: async () => {
       const response = await groupsApi.getAll();
-      setGroups(response.data);
-    } catch (error) {
-      console.error('Error fetching groups:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
 
-  const fetchTeachers = async () => {
-    try {
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: async () => {
       const response = await teachersApi.getAll();
-      setTeachers(response.data);
-    } catch (error) {
-      console.error('Error fetching teachers:', error);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => groupsApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['groups']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => groupsApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['groups']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => groupsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['groups']),
+  });
 
   const handleOpenModal = (group = null) => {
     if (group) {
@@ -68,12 +72,11 @@ const Groups = () => {
     e.preventDefault();
     try {
       if (editingGroup) {
-        await groupsApi.update(editingGroup.id, formData);
+        await updateMutation.mutateAsync({ id: editingGroup.id, data: formData });
       } else {
-        await groupsApi.create(formData);
+        await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-      fetchGroups();
     } catch (error) {
       console.error('Error saving group:', error);
       alert('Xatolik yuz berdi');
@@ -83,8 +86,7 @@ const Groups = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu guruhni o\'chirmoqchimisiz?')) {
       try {
-        await groupsApi.delete(id);
-        fetchGroups();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting group:', error);
       }
@@ -100,7 +102,7 @@ const Groups = () => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+          className=" cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
         >
           <FiPlus /> Yangi Guruh
         </button>
@@ -121,13 +123,13 @@ const Groups = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleOpenModal(group)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   >
                     <FiEdit2 />
                   </button>
                   <button
                     onClick={() => handleDelete(group.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <FiTrash2 />
                   </button>
@@ -216,13 +218,13 @@ const Groups = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

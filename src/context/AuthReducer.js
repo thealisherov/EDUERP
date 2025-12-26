@@ -35,8 +35,10 @@ export const authReducer = (state, action) => {
     case 'SET_USER':
       return {
         ...state,
-        user: action.payload,
+        user: action.payload.user,
+        token: action.payload.token,
         isAuthenticated: true,
+        loading: false,
       };
     default:
       return state;

@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentsApi } from '../../api/students.api';
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import Modal from '../../components/common/Modal';
 
 const Students = () => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal State
@@ -17,21 +17,28 @@ const Students = () => {
     phone: ''
   });
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
-
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
+  const { data: students = [], isLoading: loading } = useQuery({
+    queryKey: ['students'],
+    queryFn: async () => {
       const response = await studentsApi.getAll();
-      setStudents(response.data);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => studentsApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['students']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => studentsApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['students']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => studentsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['students']),
+  });
 
   const handleOpenModal = (student = null) => {
     if (student) {
@@ -54,12 +61,11 @@ const Students = () => {
     e.preventDefault();
     try {
       if (editingStudent) {
-        await studentsApi.update(editingStudent.id, formData);
+        await updateMutation.mutateAsync({ id: editingStudent.id, data: formData });
       } else {
-        await studentsApi.create(formData);
+        await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-      fetchStudents();
     } catch (error) {
       console.error('Error saving student:', error);
       alert('Xatolik yuz berdi');
@@ -69,8 +75,7 @@ const Students = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu o\'quvchini o\'chirmoqchimisiz?')) {
       try {
-        await studentsApi.delete(id);
-        fetchStudents();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting student:', error);
       }
@@ -90,7 +95,7 @@ const Students = () => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all w-full sm:w-auto"
+          className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all w-full sm:w-auto"
         >
           <FiPlus className="h-5 w-5" />
           Yangi O'quvchi
@@ -174,13 +179,13 @@ const Students = () => {
                         </Link>
                         <button
                           onClick={() => handleOpenModal(student)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                         >
                           <FiEdit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(student.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <FiTrash2 className="h-4 w-4" />
                         </button>
@@ -231,13 +236,13 @@ const Students = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

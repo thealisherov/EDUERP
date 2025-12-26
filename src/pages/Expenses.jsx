@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../api/expenses.api';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiArrowDown } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
 
 const Expenses = () => {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
 
@@ -16,21 +16,28 @@ const Expenses = () => {
     category: 'OTHER' // RENT, SALARY, ADVERTISING, OTHER
   });
 
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const fetchExpenses = async () => {
-    try {
-      setLoading(true);
+  const { data: expenses = [], isLoading: loading } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: async () => {
       const response = await expensesApi.getAll();
-      setExpenses(response.data);
-    } catch (error) {
-      console.error('Error fetching expenses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => expensesApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['expenses']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => expensesApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['expenses']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => expensesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['expenses']),
+  });
 
   const handleOpenModal = (expense = null) => {
     if (expense) {
@@ -62,12 +69,11 @@ const Expenses = () => {
       };
 
       if (editingExpense) {
-        await expensesApi.update(editingExpense.id, payload);
+        await updateMutation.mutateAsync({ id: editingExpense.id, data: payload });
       } else {
-        await expensesApi.create(payload);
+        await createMutation.mutateAsync(payload);
       }
       setIsModalOpen(false);
-      fetchExpenses();
     } catch (error) {
       console.error('Error saving expense:', error);
       alert('Xatolik yuz berdi');
@@ -77,8 +83,7 @@ const Expenses = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu xarajatni o\'chirmoqchimisiz?')) {
       try {
-        await expensesApi.delete(id);
-        fetchExpenses();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting expense:', error);
       }
@@ -94,7 +99,7 @@ const Expenses = () => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors w-full sm:w-auto justify-center"
+          className=" cursor-pointer bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-colors w-full sm:w-auto justify-center"
         >
           <FiPlus /> Yangi Xarajat
         </button>
@@ -142,13 +147,13 @@ const Expenses = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleOpenModal(expense)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="cursor-pointer p-1 text-blue-600 hover:bg-blue-50 rounded"
                         >
                           <FiEdit2 />
                         </button>
                         <button
                           onClick={() => handleDelete(expense.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="cursor-pointer p-1 text-red-600 hover:bg-red-50 rounded"
                         >
                           <FiTrash2 />
                         </button>
@@ -220,13 +225,13 @@ const Expenses = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

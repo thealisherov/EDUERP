@@ -80,9 +80,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-gray-700">
           <button
             onClick={logout}
-            className="flex items-center gap-3 w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-all"
+            className="cursor-pointer flex items-center gap-3 w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-all"
           >
-            <FiLogOut className="h-5 w-5" />
+            <FiLogOut className=" cursor-pointer h-5 w-5" />
             <span className="font-medium">Chiqish</span>
           </button>
         </div>

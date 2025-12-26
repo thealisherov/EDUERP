@@ -16,7 +16,10 @@ const Login = () => {
     e.preventDefault();
     const result = await login(credentials);
     if (result.success) {
-      navigate('/dashboard');
+      // Kichik delay - state yangilanishi uchun
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     }
   };
 
@@ -81,7 +84,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="cursor-pointer absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5" />
@@ -101,7 +104,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className="cursor-pointer w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -114,18 +117,11 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Muammo bormi?{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-                Yordam olish
-              </a>
-            </p>
-          </div>
+          
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          © 2024 Big Ideas LC. Barcha huquqlar himoyalangan.
+          © {new Date().getFullYear()} Big Ideas LC. Barcha huquqlar himoyalangan.
         </p>
       </div>
     </div>

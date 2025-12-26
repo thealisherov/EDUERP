@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { paymentsApi } from '../api/payments.api';
 import { studentsApi } from '../api/students.api';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiDollarSign } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
 
 const Payments = () => {
-  const [payments, setPayments] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
 
@@ -19,31 +18,36 @@ const Payments = () => {
     date: new Date().toISOString().split('T')[0]
   });
 
-  useEffect(() => {
-    fetchPayments();
-    fetchStudents();
-  }, []);
-
-  const fetchPayments = async () => {
-    try {
-      setLoading(true);
+  const { data: payments = [], isLoading: loading } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
       const response = await paymentsApi.getAll();
-      setPayments(response.data);
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
 
-  const fetchStudents = async () => {
-    try {
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: async () => {
       const response = await studentsApi.getAll();
-      setStudents(response.data);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => paymentsApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['payments']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => paymentsApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['payments']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => paymentsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['payments']),
+  });
 
   const handleOpenModal = (payment = null) => {
     if (payment) {
@@ -77,12 +81,11 @@ const Payments = () => {
       };
 
       if (editingPayment) {
-        await paymentsApi.update(editingPayment.id, payload);
+        await updateMutation.mutateAsync({ id: editingPayment.id, data: payload });
       } else {
-        await paymentsApi.create(payload);
+        await createMutation.mutateAsync(payload);
       }
       setIsModalOpen(false);
-      fetchPayments();
     } catch (error) {
       console.error('Error saving payment:', error);
       alert('Xatolik yuz berdi');
@@ -92,8 +95,7 @@ const Payments = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu to\'lovni o\'chirmoqchimisiz?')) {
       try {
-        await paymentsApi.delete(id);
-        fetchPayments();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting payment:', error);
       }
@@ -109,7 +111,7 @@ const Payments = () => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+          className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
         >
           <FiPlus /> Yangi To'lov
         </button>
@@ -161,13 +163,13 @@ const Payments = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleOpenModal(payment)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="cursor-pointer p-1 text-blue-600 hover:bg-blue-50 rounded"
                         >
                           <FiEdit2 />
                         </button>
                         <button
                           onClick={() => handleDelete(payment.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="cursor-pointer p-1 text-red-600 hover:bg-red-50 rounded"
                         >
                           <FiTrash2 />
                         </button>
@@ -253,13 +255,13 @@ const Payments = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

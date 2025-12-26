@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '../api/users.api';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -15,21 +15,28 @@ const Users = () => {
     password: ''
   });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
+  const { data: users = [], isLoading: loading } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
       const response = await usersApi.getAll();
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => usersApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries(['users']),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => usersApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['users']),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => usersApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['users']),
+  });
 
   const handleOpenModal = (user = null) => {
     if (user) {
@@ -56,12 +63,11 @@ const Users = () => {
     e.preventDefault();
     try {
       if (editingUser) {
-        await usersApi.update(editingUser.id, formData);
+        await updateMutation.mutateAsync({ id: editingUser.id, data: formData });
       } else {
-        await usersApi.create(formData);
+        await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-      fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
       alert('Xatolik yuz berdi');
@@ -71,8 +77,7 @@ const Users = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Haqiqatan ham bu foydalanuvchini o\'chirmoqchimisiz?')) {
       try {
-        await usersApi.delete(id);
-        fetchUsers();
+        await deleteMutation.mutateAsync(id);
       } catch (error) {
         console.error('Error deleting user:', error);
       }
@@ -85,7 +90,7 @@ const Users = () => {
         <h1 className="text-2xl font-bold text-gray-800">Foydalanuvchilar</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+          className=" cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
         >
           <FiPlus /> Yangi Foydalanuvchi
         </button>
@@ -129,13 +134,13 @@ const Users = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleOpenModal(user)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="cursor-pointer p-1 text-blue-600 hover:bg-blue-50 rounded"
                         >
                           <FiEdit2 />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="cursor-pointer p-1 text-red-600 hover:bg-red-50 rounded"
                         >
                           <FiTrash2 />
                         </button>
@@ -207,13 +212,13 @@ const Users = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               Saqlash
             </button>

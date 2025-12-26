@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../api/reports.api';
 import { FiDollarSign, FiTrendingUp, FiTrendingDown, FiCalendar } from 'react-icons/fi';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState('financial'); // financial, payments, expenses
-  const [loading, setLoading] = useState(false);
-  const [reportData, setReportData] = useState(null);
 
   // Date Range Filters
   const [startDate, setStartDate] = useState(
@@ -13,31 +12,24 @@ const Reports = () => {
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        setLoading(true);
-        let response;
-        const params = { startDate, endDate };
+  const { data: reportData, isLoading: loading } = useQuery({
+    queryKey: ['reports', activeTab, startDate, endDate],
+    queryFn: async () => {
+      const params = { startDate, endDate };
+      let response;
 
-        if (activeTab === 'financial') {
-          response = await reportsApi.getFinancialSummaryRange(params);
-        } else if (activeTab === 'payments') {
-          response = await reportsApi.getPaymentsRange(params);
-        } else if (activeTab === 'expenses') {
-          response = await reportsApi.getExpensesRange(params);
-        }
-
-        setReportData(response?.data);
-      } catch (error) {
-        console.error('Error fetching report:', error);
-      } finally {
-        setLoading(false);
+      if (activeTab === 'financial') {
+        response = await reportsApi.getFinancialSummaryRange(params);
+      } else if (activeTab === 'payments') {
+        response = await reportsApi.getPaymentsRange(params);
+      } else if (activeTab === 'expenses') {
+        response = await reportsApi.getExpensesRange(params);
       }
-    };
 
-    fetchReport();
-  }, [activeTab, startDate, endDate]);
+      return response?.data;
+    },
+    enabled: !!startDate && !!endDate,
+  });
 
   return (
     <div className="p-6">
@@ -53,7 +45,7 @@ const Reports = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`cursor-pointer px-4 py-2 rounded-md text-sm font-medium transition-all ${
                 activeTab === tab
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
@@ -73,7 +65,7 @@ const Reports = () => {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-blue-500"
+              className=" cursor-pointer pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <span className="text-gray-400">-</span>
@@ -83,7 +75,7 @@ const Reports = () => {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-blue-500"
+              className="cursor-pointer pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
