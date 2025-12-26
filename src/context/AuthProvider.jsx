@@ -16,13 +16,20 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      // Token bor bo'lsa, authenticated deb belgilash
-      // Agar backend'dan user ma'lumotlari kerak bo'lsa, boshqa endpoint ishlatilishi mumkin
-      dispatch({
-        type: 'SET_USER',
-        payload: { token },
-      });
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        dispatch({
+          type: 'SET_USER',
+          payload: { user, token },
+        });
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 
@@ -30,18 +37,39 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
     try {
       const response = await authApi.login(credentials);
-      const { user, token } = response.data;
+      const data = response.data;
+      
+      // Backend response: { token, refreshToken, userId, username, role, branchId?, branchName? }
+      const user = {
+        id: data.userId,
+        username: data.username,
+        role: data.role,
+        branchId: data.branchId,
+        branchName: data.branchName,
+      };
+      
+      const token = data.token;
+      
+      // localStorage'ga saqlash
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('refreshToken', data.refreshToken);
+      
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: { user, token },
       });
+      
       return { success: true };
     } catch (error) {
       let errorMessage = 'Login failed';
       
       if (error.code === 'ERR_NETWORK' || error.message?.includes('ERR_CONNECTION_REFUSED')) {
         errorMessage = 'Serverga ulanib bo\'lmadi. Iltimos, backend server ishlayotganligini tekshiring.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Username yoki parol noto\'g\'ri';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Noto\'g\'ri ma\'lumotlar kiritildi';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
@@ -52,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         type: 'LOGIN_FAILURE',
         payload: errorMessage,
       });
+      
       return { success: false, error: errorMessage };
     }
   };
@@ -63,6 +92,8 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('refreshToken');
       dispatch({ type: 'LOGOUT' });
     }
   };
@@ -75,4 +106,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

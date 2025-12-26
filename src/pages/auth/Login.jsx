@@ -6,7 +6,7 @@ import { FiEye, FiEyeOff, FiUser, FiLock } from 'react-icons/fi';
 const Login = () => {
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
-    login: '',
+    username: '', // login emas, username!
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -38,22 +38,22 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-2">
-                Login
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiUser className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="login"
+                  id="username"
                   type="text"
-                  value={credentials.login}
+                  value={credentials.username}
                   onChange={(e) =>
-                    setCredentials({ ...credentials, login: e.target.value })
+                    setCredentials({ ...credentials, username: e.target.value })
                   }
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Loginni kiriting"
+                  placeholder="Username kiriting"
                   required
                 />
               </div>

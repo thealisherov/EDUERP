@@ -1,9 +1,15 @@
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Login from '../pages/auth/Login';
-import Dashboard from '../pages/dashboard/Dashboard';
+import Dashboard from '../pages/Dashboard';
 import Students from '../pages/students/Students';
 import StudentDetails from '../pages/students/StudentDetails';
+import Teachers from '../pages/Teachers';
+import Groups from '../pages/Groups';
+import Payments from '../pages/Payments';
+import Expenses from '../pages/Expenses';
+import Reports from '../pages/Reports';
+import NotFound from '../pages/NotFound';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 
@@ -52,7 +58,35 @@ const router = createBrowserRouter([
         path: 'students/:id',
         element: <StudentDetails />,
       },
+      {
+        path: 'teachers',
+        element: <Teachers />,
+      },
+      {
+        path: 'groups',
+        element: <Groups />,
+      },
+      {
+        path: 'payments',
+        element: <Payments />,
+      },
+      {
+        path: 'expenses',
+        element: <Expenses />,
+      },
+      {
+        path: 'reports',
+        element: <Reports />,
+      },
+      {
+        path: '*',
+        element: <NotFound />,
+      },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]);
 

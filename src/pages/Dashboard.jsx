@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { dashboardApi } from '../../api/dashboard.api';
+import { dashboardApi } from '../api/dashboard.api';
 import { FiUsers, FiUserCheck, FiCreditCard, FiTrendingUp } from 'react-icons/fi';
 
 const Dashboard = () => {
