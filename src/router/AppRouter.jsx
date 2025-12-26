@@ -1,6 +1,7 @@
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Login from '../pages/auth/Login';
+import Layout from '../components/layout/Layout';
 import Dashboard from '../pages/Dashboard';
 import Students from '../pages/students/Students';
 import StudentDetails from '../pages/students/StudentDetails';
@@ -10,8 +11,10 @@ import Payments from '../pages/Payments';
 import Expenses from '../pages/Expenses';
 import Reports from '../pages/Reports';
 import NotFound from '../pages/NotFound';
-import Sidebar from '../components/layout/Sidebar';
-import Navbar from '../components/layout/Navbar';
+
+// Components for new routes (placeholders for now)
+import Users from '../pages/Users';
+import Branches from '../pages/Branches';
 
 const PrivateRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -20,17 +23,7 @@ const PrivateRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1">
-        <Navbar />
-        <main>
-          <Outlet />
-        </main>
-      </div>
-    </div>
-  );
+  return <Layout />;
 };
 
 const router = createBrowserRouter([
@@ -79,6 +72,14 @@ const router = createBrowserRouter([
         element: <Reports />,
       },
       {
+        path: 'users',
+        element: <Users />,
+      },
+      {
+        path: 'branches',
+        element: <Branches />,
+      },
+      {
         path: '*',
         element: <NotFound />,
       },
@@ -95,4 +96,3 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
-
