@@ -1,16 +1,54 @@
-import api from './axios';
+// import api from './axios';
+
+// export const paymentsApi = {
+//   getAll: (params) => api.get('/payments', { params }),
+//   getById: (id) => api.get(`/payments/${id}`),
+//   create: (paymentData) => api.post('/payments', paymentData),
+//   update: (id, paymentData) => api.put(`/payments/${id}`, paymentData),
+//   delete: (id) => api.delete(`/payments/${id}`),
+//   getUnpaid: (params) => api.get('/payments/unpaid', { params }),
+//   getByStudent: (studentId, params) => api.get(`/payments/student/${studentId}`, { params }),
+//   search: (params) => api.get('/payments/search', { params }),
+//   getRecent: (params) => api.get('/payments/recent', { params }),
+//   getByMonth: (params) => api.get('/payments/by-month', { params }),
+//   getByDateRange: (params) => api.get('/payments/by-date-range', { params }),
+// };
 
 export const paymentsApi = {
-  getAll: (params) => api.get('/payments', { params }),
+  getAll: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments', { params: { branchId, ...params } });
+  },
   getById: (id) => api.get(`/payments/${id}`),
-  create: (paymentData) => api.post('/payments', paymentData),
-  update: (id, paymentData) => api.put(`/payments/${id}`, paymentData),
+  create: (paymentData) => {
+    const branchId = getUserBranchId();
+    return api.post('/payments', { ...paymentData, branchId });
+  },
+  update: (id, paymentData) => {
+    return api.put(`/payments/${id}`, paymentData);
+  },
   delete: (id) => api.delete(`/payments/${id}`),
-  getUnpaid: (params) => api.get('/payments/unpaid', { params }),
-  getByStudent: (studentId, params) => api.get(`/payments/student/${studentId}`, { params }),
-  search: (params) => api.get('/payments/search', { params }),
-  getRecent: (params) => api.get('/payments/recent', { params }),
-  getByMonth: (params) => api.get('/payments/by-month', { params }),
-  getByDateRange: (params) => api.get('/payments/by-date-range', { params }),
+  getUnpaid: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments/unpaid', { params: { branchId, ...params } });
+  },
+  getByStudent: (studentId, params = {}) => {
+    return api.get(`/payments/student/${studentId}`, { params });
+  },
+  search: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments/search', { params: { branchId, ...params } });
+  },
+  getRecent: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments/recent', { params: { branchId, ...params } });
+  },
+  getByMonth: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments/by-month', { params: { branchId, ...params } });
+  },
+  getByDateRange: (params = {}) => {
+    const branchId = getUserBranchId();
+    return api.get('/payments/by-date-range', { params: { branchId, ...params } });
+  },
 };
-

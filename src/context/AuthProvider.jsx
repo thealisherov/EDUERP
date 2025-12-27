@@ -39,6 +39,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authApi.login(credentials);
       const data = response.data;
       
+      console.log('Login response:', data); // DEBUG
+      
       // Backend response: { token, refreshToken, userId, username, role, branchId?, branchName? }
       const user = {
         id: data.userId,
@@ -50,6 +52,9 @@ export const AuthProvider = ({ children }) => {
       
       const token = data.token;
       
+      console.log('Token:', token); // DEBUG
+      console.log('User:', user); // DEBUG
+      
       // localStorage'ga saqlash
       if (token) {
         localStorage.setItem('token', token);
@@ -57,6 +62,9 @@ export const AuthProvider = ({ children }) => {
         if (data.refreshToken) {
           localStorage.setItem('refreshToken', data.refreshToken);
         }
+        console.log('localStorage updated:', { token: localStorage.getItem('token'), user: localStorage.getItem('user') }); // DEBUG
+      } else {
+        console.error('Token topilmadi!'); // DEBUG
       }
       
       dispatch({
@@ -67,6 +75,8 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       let errorMessage = 'Login failed';
+      
+      console.error('Login error:', error); // DEBUG
       
       if (error.code === 'ERR_NETWORK' || error.message?.includes('ERR_CONNECTION_REFUSED')) {
         errorMessage = 'Serverga ulanib bo\'lmadi. Iltimos, backend server ishlayotganligini tekshiring.';
