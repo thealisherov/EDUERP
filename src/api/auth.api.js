@@ -8,6 +8,6 @@ export const authApi = {
     const baseURL = api.defaults.baseURL || 'https://bigideaslc-production.up.railway.app/api';
     return axios.post(`${baseURL}${API_ENDPOINTS.AUTH.LOGIN}`, credentials);
   },
-  logout: () => api.post(API_ENDPOINTS.AUTH.LOGOUT),
+  logout: (userId) => api.post(`${API_ENDPOINTS.AUTH.LOGOUT}?userId=${userId}`),
   refreshToken: (refreshToken) => api.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }),
 };

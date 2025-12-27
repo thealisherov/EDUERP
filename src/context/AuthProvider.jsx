@@ -110,7 +110,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authApi.logout();
+      if (state.user && state.user.id) {
+          await authApi.logout(state.user.id);
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

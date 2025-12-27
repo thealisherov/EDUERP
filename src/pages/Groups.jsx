@@ -12,8 +12,11 @@ const Groups = () => {
   const [formData, setFormData] = useState({
     name: '',
     teacherId: '',
-    schedule: '',
-    subject: ''
+    startTime: '',
+    endTime: '',
+    daysOfWeek: [], // Array of strings
+    price: '',
+    description: ''
   });
 
   const { data: groups = [], isLoading: loading } = useQuery({
@@ -53,16 +56,22 @@ const Groups = () => {
       setFormData({
         name: group.name,
         teacherId: group.teacherId,
-        schedule: group.schedule || '',
-        subject: group.subject || ''
+        startTime: group.startTime || '',
+        endTime: group.endTime || '',
+        daysOfWeek: group.daysOfWeek || [],
+        price: group.price || '',
+        description: group.description || ''
       });
     } else {
       setEditingGroup(null);
       setFormData({
         name: '',
         teacherId: '',
-        schedule: '',
-        subject: ''
+        startTime: '',
+        endTime: '',
+        daysOfWeek: [],
+        price: '',
+        description: ''
       });
     }
     setIsModalOpen(true);
@@ -71,10 +80,16 @@ const Groups = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+          ...formData,
+          price: parseFloat(formData.price),
+          teacherId: Number(formData.teacherId)
+      };
+
       if (editingGroup) {
-        await updateMutation.mutateAsync({ id: editingGroup.id, data: formData });
+        await updateMutation.mutateAsync({ id: editingGroup.id, data: payload });
       } else {
-        await createMutation.mutateAsync(formData);
+        await createMutation.mutateAsync(payload);
       }
       setIsModalOpen(false);
     } catch (error) {
@@ -137,7 +152,8 @@ const Groups = () => {
               </div>
 
               <h3 className="text-lg font-bold text-gray-900 mb-1">{group.name}</h3>
-              <p className="text-gray-500 text-sm mb-4">{group.subject}</p>
+              <p className="text-gray-500 text-sm mb-4">{group.description}</p>
+              <p className="text-blue-600 font-bold mb-4">{group.price ? group.price.toLocaleString() : 0} UZS</p>
 
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -146,7 +162,11 @@ const Groups = () => {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <FiClock className="text-gray-400" />
-                  <span>Vaqt: {group.schedule || 'Belgilanmagan'}</span>
+                  <span>Vaqt: {group.startTime} - {group.endTime}</span>
+                </div>
+                 <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <FiClock className="text-gray-400" />
+                  <span>Kunlar: {group.daysOfWeek ? group.daysOfWeek.join(', ') : ''}</span>
                 </div>
               </div>
 
@@ -177,13 +197,23 @@ const Groups = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fan</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
             <input
               type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Narx</label>
+            <input
+              type="number"
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
             />
           </div>
 
@@ -198,20 +228,55 @@ const Groups = () => {
               <option value="">Tanlang</option>
               {teachers.map(teacher => (
                 <option key={teacher.id} value={teacher.id}>
-                  {teacher.name}
+                  {teacher.firstName} {teacher.lastName}
                 </option>
               ))}
             </select>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Boshlanish vaqti (09:00)</label>
+                <input
+                  type="text"
+                  placeholder="HH:mm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                />
+              </div>
+               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tugash vaqti (10:30)</label>
+                <input
+                  type="text"
+                  placeholder="HH:mm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                />
+              </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dars vaqti (Masalan: Dushanba-Chorshanba-Juma 14:00)</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              value={formData.schedule}
-              onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kunlar</label>
+             <select
+                  multiple
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all h-32"
+                  value={formData.daysOfWeek}
+                  onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                      setFormData({ ...formData, daysOfWeek: selectedOptions });
+                  }}
+                >
+                  <option value="MONDAY">Dushanba</option>
+                  <option value="TUESDAY">Seshanba</option>
+                  <option value="WEDNESDAY">Chorshanba</option>
+                  <option value="THURSDAY">Payshanba</option>
+                  <option value="FRIDAY">Juma</option>
+                  <option value="SATURDAY">Shanba</option>
+                  <option value="SUNDAY">Yakshanba</option>
+             </select>
+             <p className="text-xs text-gray-500 mt-1">Ko'proq tanlash uchun Ctrl tugmasini bosib turing</p>
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

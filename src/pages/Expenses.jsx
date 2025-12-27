@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expensesApi } from '../api/expenses.api';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiArrowDown } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
+import { getUserBranchId } from '../api/helpers';
 
 const Expenses = () => {
   const queryClient = useQueryClient();
@@ -12,8 +13,7 @@ const Expenses = () => {
   const [formData, setFormData] = useState({
     amount: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
-    category: 'OTHER' // RENT, SALARY, ADVERTISING, OTHER
+    category: 'OTHER'
   });
 
   const { data: expenses = [], isLoading: loading } = useQuery({
@@ -45,7 +45,6 @@ const Expenses = () => {
       setFormData({
         amount: expense.amount,
         description: expense.description || '',
-        date: expense.date ? expense.date.split('T')[0] : new Date().toISOString().split('T')[0],
         category: expense.category || 'OTHER'
       });
     } else {
@@ -53,7 +52,6 @@ const Expenses = () => {
       setFormData({
         amount: '',
         description: '',
-        date: new Date().toISOString().split('T')[0],
         category: 'OTHER'
       });
     }
@@ -64,9 +62,15 @@ const Expenses = () => {
     e.preventDefault();
     try {
       const payload = {
-        ...formData,
-        amount: parseFloat(formData.amount)
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        branchId: getUserBranchId()
       };
+
+      if (payload.branchId) {
+          payload.branchId = Number(payload.branchId);
+      }
 
       if (editingExpense) {
         await updateMutation.mutateAsync({ id: editingExpense.id, data: payload });
@@ -130,7 +134,7 @@ const Expenses = () => {
                 expenses.map((expense) => (
                   <tr key={expense.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {new Date(expense.date).toLocaleDateString()}
+                      {expense.createdAt ? new Date(expense.createdAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">
@@ -185,29 +189,17 @@ const Expenses = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sana</label>
-            <input
-              type="date"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            />
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Kategoriya</label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
-              <option value="RENT">Ijara</option>
-              <option value="SALARY">Oylik Maosh</option>
-              <option value="ADVERTISING">Reklama</option>
-              <option value="UTILITIES">Kommunal</option>
-              <option value="EQUIPMENT">Jihozlar</option>
-              <option value="OTHER">Boshqa</option>
+              <option value="RENT">Ijara (RENT)</option>
+              <option value="UTILITIES">Kommunal (UTILITIES)</option>
+              <option value="SUPPLIES">Ta'minot (SUPPLIES)</option>
+              <option value="MAINTENANCE">Tamirlash (MAINTENANCE)</option>
+              <option value="OTHER">Boshqa (OTHER)</option>
             </select>
           </div>
 
