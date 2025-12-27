@@ -3,9 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { branchesApi } from '../api/branches.api';
 import { FiPlus, FiEdit2, FiTrash2, FiMapPin } from 'react-icons/fi';
 import Modal from '../components/common/Modal';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const Branches = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  if (user?.role !== 'SUPER_ADMIN') {
+      return <Navigate to="/dashboard" replace />;
+  }
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [formData, setFormData] = useState({

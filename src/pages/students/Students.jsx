@@ -13,8 +13,11 @@ const Students = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    phone: ''
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    parentPhoneNumber: '',
+    groupIds: []
   });
 
   const { data: students = [], isLoading: loading } = useQuery({
@@ -44,14 +47,20 @@ const Students = () => {
     if (student) {
       setEditingStudent(student);
       setFormData({
-        name: student.name,
-        phone: student.phone || ''
+        firstName: student.firstName,
+        lastName: student.lastName,
+        phoneNumber: student.phoneNumber || '',
+        parentPhoneNumber: student.parentPhoneNumber || '',
+        groupIds: student.groups ? student.groups.map(g => g.id) : []
       });
     } else {
       setEditingStudent(null);
       setFormData({
-        name: '',
-        phone: ''
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        parentPhoneNumber: '',
+        groupIds: []
       });
     }
     setIsModalOpen(true);
@@ -83,7 +92,8 @@ const Students = () => {
   };
 
   const filteredStudents = students.filter(student =>
-    student.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    student.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -155,14 +165,14 @@ const Students = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {student.name || 'N/A'}
+                        {student.firstName} {student.lastName}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {student.phone || 'N/A'}
+                      {student.phoneNumber || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {student.group || 'N/A'}
+                      {student.groups && student.groups.length > 0 ? student.groups.map(g => g.name).join(', ') : 'Guruhsiz'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -211,15 +221,27 @@ const Students = () => {
         title={editingStudent ? "O'quvchini tahrirlash" : "Yangi o'quvchi"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
-            <input
-              type="text"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                <input
+                type="text"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Familiya</label>
+                <input
+                type="text"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+            </div>
           </div>
 
           <div>
@@ -227,10 +249,22 @@ const Students = () => {
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ota-ona telefon raqami</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              value={formData.parentPhoneNumber}
+              onChange={(e) => setFormData({ ...formData, parentPhoneNumber: e.target.value })}
+            />
+          </div>
+
+          {/* Group selection could be added here, but usually students are added to groups via Groups page or a separate tab */}
 
           <div className="flex justify-end gap-3 mt-6">
             <button
