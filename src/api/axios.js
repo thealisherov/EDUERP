@@ -29,12 +29,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    const status = error.response?.status;
+    const url = error.config?.url;
+    
+    console.error(`[API Error] ${status} - ${url}`, error.response?.data);
+    
+    // Faqat 401'da logout qil (token muddati o'tgan)
+    if (status === 401) {
+      console.warn('401 Unauthorized - Tokenning muddati o\'tgan');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('refreshToken');
       window.location.href = '/login';
     }
+    // 403'da ham logout qil lekin boshqacha xabar ayt
+    else if (status === 403) {
+      console.error('403 Forbidden - Ruxsat yo\'q');
+    }
+    
     return Promise.reject(error);
   }
 );
