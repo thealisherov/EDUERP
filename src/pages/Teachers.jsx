@@ -110,7 +110,8 @@ const Teachers = () => {
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error saving teacher:', error);
-      alert('Xatolik yuz berdi');
+      const errorMessage = error.response?.data?.message || error.message || 'Xatolik yuz berdi';
+      alert(`Xatolik: ${errorMessage}`);
     }
   };
 

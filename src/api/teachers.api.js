@@ -1,14 +1,5 @@
 // import api from './axios';
-
-// export const teachersApi = {
-//   getAll: (params) => api.get('/teachers', { params }),
-//   getById: (id) => api.get(`/teachers/${id}`),
-//   create: (teacherData) => api.post('/teachers', teacherData),
-//   update: (id, teacherData) => api.put(`/teachers/${id}`, teacherData),
-//   delete: (id) => api.delete(`/teachers/${id}`),
-//   search: (params) => api.get('/teachers/search', { params }),
-//   getBySalaryType: (params) => api.get('/teachers/by-salary-type', { params }),
-// };
+import { getUserBranchId } from './helpers';
 
 export const teachersApi = {
   getAll: (params = {}) => {
@@ -18,11 +9,15 @@ export const teachersApi = {
   getById: (id) => api.get(`/teachers/${id}`),
   create: (teacherData) => {
     const branchId = getUserBranchId();
-    return api.post('/teachers', { ...teacherData, branchId });
+    // Use branchId from localStorage if not present in teacherData
+    // But prefer teacherData.branchId if provided (e.g. by Super Admin)
+    const finalBranchId = teacherData.branchId || branchId;
+    return api.post('/teachers', { ...teacherData, branchId: finalBranchId });
   },
   update: (id, teacherData) => {
     const branchId = getUserBranchId();
-    return api.put(`/teachers/${id}`, { ...teacherData, branchId });
+    const finalBranchId = teacherData.branchId || branchId;
+    return api.put(`/teachers/${id}`, { ...teacherData, branchId: finalBranchId });
   },
   delete: (id) => api.delete(`/teachers/${id}`),
   search: (params = {}) => {
