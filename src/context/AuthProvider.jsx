@@ -51,9 +51,13 @@ export const AuthProvider = ({ children }) => {
       const token = data.token;
       
       // localStorage'ga saqlash
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('refreshToken', data.refreshToken);
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
+      }
       
       dispatch({
         type: 'LOGIN_SUCCESS',
