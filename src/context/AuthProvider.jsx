@@ -42,15 +42,24 @@ export const AuthProvider = ({ children }) => {
       console.log('Login response:', data); // DEBUG
       
       // Backend response: { token, refreshToken, userId, username, role, branchId?, branchName? }
+      // Handling common variations (accessToken, id, roles)
+      const token = data.token || data.accessToken;
+      const refreshToken = data.refreshToken;
+
+      // Handle roles (could be string or array)
+      let role = data.role || data.roles;
+      if (Array.isArray(role)) {
+        role = role[0]; // Take the first role if array
+      }
+
       const user = {
-        id: data.userId,
+        id: data.userId || data.id,
         username: data.username,
-        role: data.role,
+        role: role,
         branchId: data.branchId,
         branchName: data.branchName,
+        email: data.email
       };
-      
-      const token = data.token;
       
       console.log('Token:', token); // DEBUG
       console.log('User:', user); // DEBUG
@@ -59,12 +68,12 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken);
+        if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
         }
         console.log('localStorage updated:', { token: localStorage.getItem('token'), user: localStorage.getItem('user') }); // DEBUG
       } else {
-        console.error('Token topilmadi!'); // DEBUG
+        console.error('Token topilmadi! Response:', data); // DEBUG
       }
       
       dispatch({
